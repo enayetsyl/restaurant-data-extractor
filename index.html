@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Data Table</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .input-section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Restaurants in Blackburn</h1>
+    <div class="input-section">
+        <textarea id="rawData" rows="10" cols="50" placeholder="Paste restaurant data here..."></textarea><br>
+        <button onclick="parseAndAddRestaurants()">Add Restaurants</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody id="restaurantTableBody">
+        </tbody>
+    </table>
+
+    <script>
+        const restaurantData = [];
+
+        const tableBody = document.getElementById("restaurantTableBody");
+
+        // Function to display the restaurant data in the table
+        function displayRestaurants() {
+            tableBody.innerHTML = ""; // Clear the table body before adding rows
+            restaurantData.forEach((restaurant) => {
+                const row = document.createElement("tr");
+                restaurant.forEach((data) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = data;
+                    row.appendChild(cell);
+                });
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to parse the raw input and extract multiple restaurant entries
+        function parseAndAddRestaurants() {
+            const rawText = document.getElementById("rawData").value.trim();
+
+            // Split the raw input into restaurant sections based on the "Reviews" keyword
+            const restaurantSections = rawText.split("Reviews");
+            console.log('restaurantSections', restaurantSections);
+
+            restaurantSections.forEach(section => {
+                const cleanedSection = section.trim(); // Remove leading/trailing whitespace
+                if (cleanedSection === "") return; // Skip empty sections
+
+                // Extract Name: The name is located before "Local Restaurants -"
+                const nameRegex = /^(.*?)\nLocal Restaurants -/;
+                const nameMatch = cleanedSection.match(nameRegex);
+                const name = nameMatch ? nameMatch[1].trim() : "";
+
+                const phoneRegex = /\d{5}\s\d{6}|\d{4}\s\d{3}\s\d{4}/;
+                const phoneMatch = cleanedSection.match(phoneRegex);
+                const phone = phoneMatch ? phoneMatch[0] : "";  
+
+
+                // Extract Address: Address comes after the phone number and before "More Info"
+                const addressRegex = new RegExp(phone + "\\n(.*?)\\nMore Info", "s");
+                console.log('addressRegex', addressRegex);
+                const addressMatch = cleanedSection.match(addressRegex);
+                console.log('address match', addressMatch)
+                const address = addressMatch ? addressMatch[1].trim() : "";
+
+                console.log('address', address);
+
+                if(name){
+                  restaurantData.push([name, phone, address]);
+                }
+
+                // if (name && phone && address) {
+                //     restaurantData.push([name, phone, address]);
+                // }
+            });
+
+            // Check if data was added
+            if (restaurantData.length > 0) {
+                displayRestaurants(); // Refresh the table with the new data
+            } else {
+                alert("No valid restaurant data found.");
+            }
+
+            // Clear the input area after parsing
+            document.getElementById("rawData").value = '';
+        }
+
+        // Initial call to display existing restaurant data
+        displayRestaurants();
+    </script>
+</body>
+</html>
